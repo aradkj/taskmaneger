@@ -1,15 +1,23 @@
 const express = require("express");
 const sqlite3 = require("sqlite3").verbose();
+const fs = require("fs");
+const path = require("path");
 
 const app = express();
 const PORT = 3000;
 
-
 app.use(express.json());
 app.use(express.static("public"));
 
+// Create data directory if it doesn't exist
+const dataDir = path.join(__dirname, "data");
+fs.mkdirSync(dataDir, { recursive: true });
+
+// Database path
+const dbPath = path.join(dataDir, "tasks.db");
+
 // Connect to database
-const db = new sqlite3.Database("./data/tasks.db", (err) => {
+const db = new sqlite3.Database(dbPath, (err) => {
     if (err) {
         console.error("Database connection error:", err.message);
     } else {
@@ -42,7 +50,9 @@ app.post("/tasks", (req, res) => {
     const { title } = req.body;
 
     if (!title) {
-        return res.status(400).json({ error: "Title is required" });
+        return res.status(400).json({
+            error: "Title is required"
+        });
     }
 
     db.run(
@@ -50,7 +60,9 @@ app.post("/tasks", (req, res) => {
         [title],
         function (err) {
             if (err) {
-                return res.status(500).json({ error: err.message });
+                return res.status(500).json({
+                    error: err.message
+                });
             }
 
             res.json({
@@ -71,10 +83,14 @@ app.delete("/tasks/:id", (req, res) => {
         [id],
         function (err) {
             if (err) {
-                return res.status(500).json({ error: err.message });
+                return res.status(500).json({
+                    error: err.message
+                });
             }
 
-            res.json({ message: "Task deleted" });
+            res.json({
+                message: "Task deleted"
+            });
         }
     );
 });
@@ -89,11 +105,15 @@ app.put("/tasks/:id", (req, res) => {
         [completed ? 1 : 0, id],
         function (err) {
             if (err) {
-                return res.status(500).json({ error: err.message });
+                return res.status(500).json({
+                    error: err.message
+                });
             }
 
             if (this.changes === 0) {
-                return res.status(404).json({ error: "Task not found" });
+                return res.status(404).json({
+                    error: "Task not found"
+                });
             }
 
             res.json({
@@ -110,4 +130,5 @@ if (require.main === module) {
     });
 }
 
+// Export app and database for tests
 module.exports = { app, db };

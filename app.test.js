@@ -1,5 +1,5 @@
 const request = require("supertest");
-const app = require("./app");
+const { app, db } = require("./app");
 
 describe("Task Manager API", () => {
 
@@ -57,4 +57,9 @@ describe("Task Manager API", () => {
         expect(response.body.message).toBe("Task deleted");
     });
 
+});
+
+
+afterAll((done) => {
+    db.close(done);
 });
